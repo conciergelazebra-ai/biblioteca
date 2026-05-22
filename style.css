@@ -1,0 +1,274 @@
+/* Variables de color para cambiar el estilo fácil */
+:root {
+    --bg-color: #f4f7f6;
+    --primary-color: #1e293b;
+    --accent-color: #0ea5e9;
+    --text-color: #334155;
+    --card-bg: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+/* Buscador */
+.search-container {
+    margin: 20px 0;
+}
+
+#buscador {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 30px;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+#buscador:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 10px 15px -3px rgb(14 165 233 / 0.3);
+}
+
+/* Botones de Filtro */
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-filter {
+    background: #e2e8f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-color);
+    transition: background 0.2s;
+}
+
+.btn-filter.active, .btn-filter:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Grid de Tarjetas */
+.grid-resultados {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Tarjeta */
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #e2e8f0;
+}
+
+.badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.card h3 {
+    margin: 15px 0 5px 0;
+    font-size: 18px;
+    color: var(--primary-color);
+}
+
+.card p {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+/* Botones de acción */
+.card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-action {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.2s;
+}
+
+.btn-action:hover {
+    opacity: 0.85;
+}
+
+.btn-action.pdf {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-action.qr {
+    background-color: #10b981;
+    color: white;
+}
+
+/* --- ESTILOS DEL MODAL (VENTANA EMERGENTE) --- */
+.modal {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    z-index: 1000; /* Asegura que esté por encima de todo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.6); /* Fondo oscuro transparente */
+    backdrop-filter: blur(4px); /* Efecto difuminado de fondo */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 360px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    animation: zoomIn 0.3s ease; /* Animación de entrada */
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: #ef4444; /* Se pone rojo al pasar el mouse */
+}
+
+#modalTitulo {
+    margin-top: 5px;
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+.modal-body img {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    margin: 15px 0;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    border-radius: 8px;
+    background: white;
+}
+
+.modal-content p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.btn-action.whatsapp {
+    background-color: #25d366;
+    color: white;
+}
+
+/* ==========================================
+   🔥 DISEÑO DEL PANEL DE SUBIDA (ADMIN)
+   ========================================== */
+
+/* Estilo para el botón del engranaje */
+#btnToggleAdmin {
+    transition: transform 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+#btnToggleAdmin:hover {
+    transform: rotate(45deg); /* Gira un poquito al pasar el mouse */
+    background-color: #f1f5f9;
+}
+
+/* Contenedor del panel gris */
+#panelAdmin {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Animación suave para que no aparezca de golpe */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ajustes para que el formulario se adapte a celulares en recepción */
+#formularioSubida input, 
+#formularioSubida select {
+    font-family: inherit;
+    font-size: 14px;
+    color: #334155;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#formularioSubida input:focus, 
+#formularioSubida select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
