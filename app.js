@@ -16,9 +16,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 2. CONFIGURACIÓN DE CLOUDINARY INTEGRADA
+// 2. CONFIGURACIÓN DE CLOUDINARY CON EL NUEVO PRESET LIMPIO
 const CLOUD_NAME = "dlujpxqkt"; 
-const UPLOAD_PRESET = "biblioteca_preset"; 
+const UPLOAD_PRESET = "menus_pdf"; // <-- Vinculado a tu preset exclusivo para PDFs
 
 let biblioteca = [];
 
@@ -38,7 +38,7 @@ async function cargarBibliotecaDesdeFirebase() {
     }
 }
 
-// 3. Función para pintar las tarjetas en el HTML con Visor de Compatibilidad Forzada
+// 3. Función para pintar las tarjetas en el HTML con Previsualización Nativa Directa
 function mostrarResultados(elementos) {
     const container = document.getElementById('resultadosContainer');
     if (!container) return;
@@ -50,18 +50,6 @@ function mostrarResultados(elementos) {
     }
 
     elementos.forEach(item => {
-        let urlDestino = item.archivoUrl;
-
-        // PARCHE DE VISUALIZACIÓN: Si la URL es de Cloudinary e intenta descargar un .ai o rompe el visor,
-        // la pasamos por el renderizador universal de Google para garantizar que se abra en pantalla sin errores.
-        if (urlDestino && urlDestino !== "#" && urlDestino !== "" && urlDestino.includes("cloudinary.com")) {
-            // Aseguramos que la URL termine visualmente de forma correcta
-            if (urlDestino.toLowerCase().endsWith('.ai')) {
-                urlDestino = urlDestino.slice(0, -3) + '.pdf';
-            }
-            urlDestino = `https://docs.google.com/viewer?url=${encodeURIComponent(urlDestino)}&embedded=false`;
-        }
-
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -69,7 +57,7 @@ function mostrarResultados(elementos) {
             <h3>${item.titulo}</h3>
             <p><strong>Tags:</strong> ${item.tags ? item.tags.join(', ') : ''}</p>
             <div class="card-actions" style="flex-wrap: wrap; gap: 8px;">
-                <a href="${urlDestino}" target="_blank" class="btn-action pdf">📄 Ver PDF / Enlace</a>
+                <a href="${item.archivoUrl}" target="_blank" class="btn-action pdf">📄 Ver PDF / Enlace</a>
                 ${item.archivoUrl !== "#" && item.archivoUrl !== "" ? `<button onclick="window.compartirPorWhatsapp('${item.titulo}', '${item.archivoUrl}')" class="btn-action whatsapp" style="border:none; cursor:pointer;">💬 WhatsApp</button>` : ''}
                 <button onclick="window.prepararEdicion('${item.id}')" class="btn-action editar" style="border:none; cursor:pointer; background:#0ea5e9; color:white;">✏️ Reemplazar</button>
             </div>
@@ -124,7 +112,7 @@ if (btnToggle && panel) {
 }
 
 // ==========================================
-// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY
+// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY CLEAN
 // ==========================================
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -162,27 +150,22 @@ async function subirArchivoACloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
+    
+    // Forzamos el resource_type por si las dudas desde la petición
+    formData.append('resource_type', 'auto'); 
 
     try {
-        // Usamos el endpoint plano para evitar colisiones con las políticas del preset necio
-        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
+        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
             method: 'POST',
             body: formData
         });
 
         const data = await respuesta.json();
         if (data.secure_url) {
-            let urlFinal = data.secure_url;
-            
-            // Si la URL regresa como .ai, la convertimos de inmediato a texto .pdf para Firebase
-            if (urlFinal.toLowerCase().endsWith('.ai')) {
-                urlFinal = urlFinal.slice(0, -3) + '.pdf';
-            }
-
-            hiddenUrlInput.value = urlFinal;
+            hiddenUrlInput.value = data.secure_url;
             
             if (document.getElementById('nuevoArchivoUrlManual')) {
-                document.getElementById('nuevoArchivoUrlManual').value = urlFinal;
+                document.getElementById('nuevoArchivoUrlManual').value = data.secure_url;
             }
 
             dropZoneTexto.innerHTML = `✅ ¡Archivo listo para guardar! (${file.name})`;
@@ -192,7 +175,7 @@ async function subirArchivoACloudinary(file) {
         }
     } catch (error) {
         console.error("Error en Cloudinary:", error);
-        dropZoneTexto.innerHTML = `❌ Error al subir. Revisa el Upload Preset en Cloudinary.`;
+        dropZoneTexto.innerHTML = `❌ Error al subir. Revisa que el preset esté guardado en Cloudinary.`;
         dropZone.style.borderColor = "#ef4444";
     }
 }
