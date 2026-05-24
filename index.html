@@ -16,7 +16,12 @@
         <p>Encuentra menús, QR y servicios al instante</p>
         
         <div id="panelAdmin" style="display: block; background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; max-width: 500px; margin: 15px auto; text-align: left; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-            <h3 style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Subir Nuevo Documento / QR</h3>
+            
+            <input type="hidden" id="editandoId" value="">
+            <input type="hidden" id="nuevoArchivoUrl" value="#">
+            <input type="hidden" id="nuevoQrUrl" value="#">
+
+            <h3 id="formTitulo" style="margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Subir Nuevo Documento / QR</h3>
             <form id="formularioSubida" style="display: flex; flex-direction: column; gap: 12px;">
                 <div>
                     <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">Título:</label>
@@ -35,15 +40,24 @@
                     <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">Palabras clave (separadas por comas):</label>
                     <input type="text" id="nuevosTags" placeholder="Ej. coctel, cerveza, alberca, bebidas" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
                 </div>
+                
                 <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">Link de Google Drive (PDF / Folleto):</label>
-                    <input type="text" id="nuevoArchivoUrl" placeholder="Pegar enlace o dejar '#' si no aplica" value="#" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">📁 Arrastrar Archivo (PDF o Imagen QR):</label>
+                    <div id="dropZone" style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 8px; text-align: center; background: #fff; cursor: pointer; transition: background 0.2s;">
+                        <span id="dropZoneTexto" style="color: #64748b; font-size: 14px;">Arrastra tu PDF/Imagen aquí o <strong>haz clic para buscar</strong></span>
+                        <input type="file" id="fileInput" accept="application/pdf, image/*" style="display: none;">
+                    </div>
                 </div>
+
                 <div>
-                    <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">Link de la Foto del QR (Opcional):</label>
-                    <input type="text" id="nuevoQrUrl" placeholder="Pegar enlace de imagen o dejar '#' si no aplica" value="#" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:4px; color:#475569;">🔗 Link Manual Alternativo (Drive / Web):</label>
+                    <input type="text" id="nuevoArchivoUrlManual" placeholder="Pegar enlace o dejar vacío si usas el recuadro de arriba" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
                 </div>
-                <button type="submit" style="background:#2563eb; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:8px;">🚀 Guardar en la Nube</button>
+
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button type="submit" id="btnGuardar" style="flex: 2; background:#2563eb; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">🚀 Guardar en la Nube</button>
+                    <button type="button" id="btnCancelarEdicion" style="flex: 1; display: none; background:#94a3b8; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">Cancelar</button>
+                </div>
             </form>
         </div>
 
