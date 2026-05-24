@@ -150,12 +150,9 @@ async function subirArchivoACloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
-    
-    // CORRECCIÓN: Forzar que se mantenga el formato original
     formData.append('resource_type', 'auto'); 
 
     try {
-        // CORRECCIÓN: Endpoint cambiado a /auto/upload para evitar conversiones raras
         const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
             method: 'POST',
             body: formData
@@ -163,7 +160,14 @@ async function subirArchivoACloudinary(file) {
 
         const data = await respuesta.json();
         if (data.secure_url) {
-            hiddenUrlInput.value = data.secure_url;
+            let urlLimpia = data.secure_url;
+            
+            // FILTRO CORRECTOR: Si termina en .ai, cambiamos la extensión del enlace a .pdf
+            if (urlLimpia.toLowerCase().endsWith('.ai')) {
+                urlLimpia = urlLimpia.slice(0, -3) + '.pdf';
+            }
+            
+            hiddenUrlInput.value = urlLimpia;
             dropZoneTexto.innerHTML = `✅ ¡Archivo listo para guardar! (${file.name})`;
             dropZone.style.borderColor = "#22c55e";
         } else {
@@ -280,7 +284,7 @@ window.compartirPorWhatsapp = function(titulo, urlArchivo) {
     const mensaje = `🌴 *Hola, es un gusto saludarte de Recepción.* \n\nAquí tienes el documento que solicitaste: *${titulo}*.\n\n👉 Puedes revisarlo en el siguiente enlace:\n${urlArchivo}\n\n¡Que sigas disfrutando tu estancia! ✨`;
     
     const enlaceVirtual = document.createElement('a');
-    enlaceVirtual.href = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
+    enlaceVirtual.href = `https://wa.me/${numeroLinter || numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
     enlaceVirtual.target = '_blank';
     document.body.appendChild(enlaceVirtual);
     enlaceVirtual.click();
