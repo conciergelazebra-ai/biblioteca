@@ -38,7 +38,7 @@ async function cargarBibliotecaDesdeFirebase() {
     }
 }
 
-// 3. Función para pintar las tarjetas en el HTML con botones de Reemplazar
+// 3. Función para pintar las tarjetas en el HTML con Visor de Compatibilidad Forzada
 function mostrarResultados(elementos) {
     const container = document.getElementById('resultadosContainer');
     if (!container) return;
@@ -50,6 +50,18 @@ function mostrarResultados(elementos) {
     }
 
     elementos.forEach(item => {
+        let urlDestino = item.archivoUrl;
+
+        // PARCHE DE VISUALIZACIÓN: Si la URL es de Cloudinary e intenta descargar un .ai o rompe el visor,
+        // la pasamos por el renderizador universal de Google para garantizar que se abra en pantalla sin errores.
+        if (urlDestino && urlDestino !== "#" && urlDestino !== "" && urlDestino.includes("cloudinary.com")) {
+            // Aseguramos que la URL termine visualmente de forma correcta
+            if (urlDestino.toLowerCase().endsWith('.ai')) {
+                urlDestino = urlDestino.slice(0, -3) + '.pdf';
+            }
+            urlDestino = `https://docs.google.com/viewer?url=${encodeURIComponent(urlDestino)}&embedded=false`;
+        }
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -57,7 +69,7 @@ function mostrarResultados(elementos) {
             <h3>${item.titulo}</h3>
             <p><strong>Tags:</strong> ${item.tags ? item.tags.join(', ') : ''}</p>
             <div class="card-actions" style="flex-wrap: wrap; gap: 8px;">
-                <a href="${item.archivoUrl}" target="_blank" class="btn-action pdf">📄 Ver PDF / Enlace</a>
+                <a href="${urlDestino}" target="_blank" class="btn-action pdf">📄 Ver PDF / Enlace</a>
                 ${item.archivoUrl !== "#" && item.archivoUrl !== "" ? `<button onclick="window.compartirPorWhatsapp('${item.titulo}', '${item.archivoUrl}')" class="btn-action whatsapp" style="border:none; cursor:pointer;">💬 WhatsApp</button>` : ''}
                 <button onclick="window.prepararEdicion('${item.id}')" class="btn-action editar" style="border:none; cursor:pointer; background:#0ea5e9; color:white;">✏️ Reemplazar</button>
             </div>
@@ -112,7 +124,7 @@ if (btnToggle && panel) {
 }
 
 // ==========================================
-// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY (CORREGIDA)
+// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY
 // ==========================================
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -150,24 +162,29 @@ async function subirArchivoACloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
-    formData.append('resource_type', 'auto'); 
 
     try {
-        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+        // Usamos el endpoint plano para evitar colisiones con las políticas del preset necio
+        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
             method: 'POST',
             body: formData
         });
 
         const data = await respuesta.json();
         if (data.secure_url) {
-            let urlLimpia = data.secure_url;
+            let urlFinal = data.secure_url;
             
-            // FILTRO CORRECTOR: Si termina en .ai, cambiamos la extensión del enlace a .pdf
-            if (urlLimpia.toLowerCase().endsWith('.ai')) {
-                urlLimpia = urlLimpia.slice(0, -3) + '.pdf';
+            // Si la URL regresa como .ai, la convertimos de inmediato a texto .pdf para Firebase
+            if (urlFinal.toLowerCase().endsWith('.ai')) {
+                urlFinal = urlFinal.slice(0, -3) + '.pdf';
             }
+
+            hiddenUrlInput.value = urlFinal;
             
-            hiddenUrlInput.value = urlLimpia;
+            if (document.getElementById('nuevoArchivoUrlManual')) {
+                document.getElementById('nuevoArchivoUrlManual').value = urlFinal;
+            }
+
             dropZoneTexto.innerHTML = `✅ ¡Archivo listo para guardar! (${file.name})`;
             dropZone.style.borderColor = "#22c55e";
         } else {
@@ -181,24 +198,21 @@ async function subirArchivoACloudinary(file) {
 }
 
 // ==========================================
-// ✏️ SISTEMA DE EDICIÓN / REEMPLAZAR ARCHIVO (REFORZADO)
+// ✏️ SISTEMA DE EDICIÓN / REEMPLAZAR ARCHIVO
 // ==========================================
 window.prepararEdicion = function(id) {
     const item = biblioteca.find(i => i.id === id);
     if (!item) return;
 
-    // Rellenar de forma segura validando la existencia de los ID en el HTML
     if(document.getElementById('editandoId')) document.getElementById('editandoId').value = item.id;
     if(document.getElementById('nuevoTitulo')) document.getElementById('nuevoTitulo').value = item.titulo || '';
     if(document.getElementById('nuevaCategoria')) document.getElementById('nuevaCategoria').value = item.categoria || 'restaurante';
     if(document.getElementById('nuevosTags')) document.getElementById('nuevosTags').value = item.tags ? item.tags.join(', ') : '';
     
-    // Asignar URLs de manera segura
     if(document.getElementById('nuevoArchivoUrl')) document.getElementById('nuevoArchivoUrl').value = item.archivoUrl || '#';
     if(document.getElementById('nuevoArchivoUrlManual')) document.getElementById('nuevoArchivoUrlManual').value = item.archivoUrl === "#" ? "" : (item.archivoUrl || '');
     if(document.getElementById('nuevoQrUrl')) document.getElementById('nuevoQrUrl').value = item.qrUrl || '#';
 
-    // Cambiar textos visuales del Formulario
     if(document.getElementById('formTitulo')) document.getElementById('formTitulo').innerText = "🔄 Reemplazar / Editar Documento";
     if(document.getElementById('btnGuardar')) document.getElementById('btnGuardar').innerText = "💾 Actualizar Cambios";
     if(document.getElementById('btnCancelarEdicion')) document.getElementById('btnCancelarEdicion').style.display = "block";
@@ -206,7 +220,6 @@ window.prepararEdicion = function(id) {
     if(document.getElementById('dropZoneTexto')) document.getElementById('dropZoneTexto').innerHTML = "Arrastra un archivo nuevo si deseas reemplazar el actual";
     if(dropZone) dropZone.style.borderColor = "#cbd5e1";
     
-    // Desplazamiento suave al panel
     const adminPanel = document.getElementById('panelAdmin');
     if(adminPanel) adminPanel.scrollIntoView({ behavior: 'smooth' });
 };
@@ -243,7 +256,6 @@ if (formulario) {
         const urlCloudinary = document.getElementById('nuevoArchivoUrl').value;
         const urlQrExistente = document.getElementById('nuevoQrUrl').value;
         
-        // Prioridad al input manual, si está vacío usa la URL que dejó Cloudinary
         const archivoUrlDefinitivo = urlManual.trim() !== "" ? urlManual : urlCloudinary;
         const tagsTexto = document.getElementById('nuevosTags').value;
         const tagsArray = tagsTexto.split(',').map(tag => tag.trim().toLowerCase());
@@ -252,7 +264,7 @@ if (formulario) {
             titulo: titulo,
             categoria: categoria,
             archivoUrl: archivoUrlDefinitivo,
-            qrUrl: urlQrExistente, // Mantener compatibilidad de datos
+            qrUrl: urlQrExistente,
             tags: tagsArray
         };
 
@@ -284,7 +296,7 @@ window.compartirPorWhatsapp = function(titulo, urlArchivo) {
     const mensaje = `🌴 *Hola, es un gusto saludarte de Recepción.* \n\nAquí tienes el documento que solicitaste: *${titulo}*.\n\n👉 Puedes revisarlo en el siguiente enlace:\n${urlArchivo}\n\n¡Que sigas disfrutando tu estancia! ✨`;
     
     const enlaceVirtual = document.createElement('a');
-    enlaceVirtual.href = `https://wa.me/${numeroLinter || numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
+    enlaceVirtual.href = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
     enlaceVirtual.target = '_blank';
     document.body.appendChild(enlaceVirtual);
     enlaceVirtual.click();
