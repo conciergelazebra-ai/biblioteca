@@ -112,7 +112,7 @@ if (btnToggle && panel) {
 }
 
 // ==========================================
-// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY
+// 📁 INTERFAZ DRAG & DROP -> CLOUDINARY (CORREGIDA)
 // ==========================================
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -150,9 +150,13 @@ async function subirArchivoACloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
+    
+    // CORRECCIÓN: Forzar que se mantenga el formato original
+    formData.append('resource_type', 'auto'); 
 
     try {
-        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
+        // CORRECCIÓN: Endpoint cambiado a /auto/upload para evitar conversiones raras
+        const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
             method: 'POST',
             body: formData
         });
